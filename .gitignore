@@ -1,4 +1,4 @@
-libraryData
-users
+libraryData/
+users/
 torrents/*
 !torrents/*.*
