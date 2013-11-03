@@ -1,0 +1,5 @@
+[05-Sep-2013 20:00:33 UTC] PHP Fatal error:  Can't use method return value in write context in /var/www/models/FileDB.php on line 13
+[24-Oct-2013 09:07:47 UTC] PHP Fatal error:  Undefined class constant 'TORRENT_HASH' in /var/www/torrents/torrentDone.php on line 34
+[24-Oct-2013 09:14:26 UTC] PHP Fatal error:  Undefined class constant 'TORRENT_HASH' in /var/www/torrents/torrentDone.php on line 34
+[25-Oct-2013 00:20:01 UTC] PHP Fatal error:  Undefined class constant 'TORRENT_HASH' in /var/www/torrents/torrentDone.php on line 34
+[03-Nov-2013 06:57:03 UTC] PHP Fatal error:  Undefined class constant 'TORRENT_HASH' in /var/www/torrents/torrentDone.php on line 34

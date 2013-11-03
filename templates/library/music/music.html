@@ -1,0 +1,34 @@
+{% set musicContent %}
+	<div class='panel panel-default'>
+		<div class='panel-heading'><h4>Artists</h4></div>
+		<div class='panel-body'>
+			{% for artist in artists %}
+				<div class='col-lg-2'><a id='{{ artist }}' class='artist-listing thumbnail'><img src='/{{ attribute(artistImages, artist) }}'><div class='caption'>{{ artist }}</div></a></div>
+			{% endfor %}
+		</div>
+	</div>
+	<div class='panel panel-default'>
+		<div class='panel-heading'><h4>Albums</h4></div>
+		<div class='panel-body'>
+			{% for album in albums %}
+				<div id='{{ artist }}' class='col-lg-2'><a id='{{ album }}' class='album-listing thumbnail'><img src='/{{ attribute(albumArtwork, album) }}'><div>{{ album }}</div></a></div>
+			{% endfor %}
+		</div>
+	</div>
+	<div class='panel panel-default'>
+		<div class='panel-heading'><h4>Songs</h4></div>
+		<div class='panel-body'>
+			<div class='song-container'>
+				<table class='song-table table table-hover table-condensed'>
+					<th>#</th><th></th><th>Name</th><th>Artist</th><th>Album</th><th>Time</th>
+					{% for song in songs %}
+						<tr id='{{ song.hash }}' class='song-listing album-view'><td class='trackNumber'>{{ song.trackNumber }}</td><td></td><td class='title'>{{ song.title }}</td><td class='artist'>{{ song.artist }}</td><td class='album'>{{ song.album }}</td><td class='duration'>{{ song.duration }}</td></tr>
+					{% endfor %}
+				</table>
+			</div>
+		</div>
+	</div>
+{% endset %}
+
+
+{% include 'library/music/load.html' with {'content': musicContent} %}

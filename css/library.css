@@ -1,0 +1,90 @@
+body { padding-bottom: 70px; }
+
+.artist-listing {
+	margin-top: 20px;
+	margin-bottom: 20px;
+	margin-right: auto;
+	margin-left: auto;
+	width: 260px;
+	height:160px;
+	padding:0px;
+	text-align:center;
+}
+
+.artist-listing img {
+	padding: 0px;
+	width: 100%;
+	height:100%;
+}
+
+.album-listing {
+	margin-bottom: 15px;
+	width: 160px;
+	height:160px;
+	padding:0px;
+	text-align:center;
+}
+
+.album-listing img {
+	padding: 0px;
+	width: 100%;
+	height:100%;
+}
+
+.song-listing {
+
+}
+
+.song-listing:hover {
+	cursor: pointer;
+}
+
+.artist-image-heading {
+	width: 360px;
+	height: 180px;
+}
+
+.album-artwork {
+	width: 160px;
+	height: 160px;
+}
+
+.song-container {
+	overflow: hidden;
+}
+.song-table {
+	margin: 0px 20px;
+	
+}
+
+#player {
+	height: 52px;
+}
+
+#player-album-artwork {
+	float: left;
+	height: 62px;
+	width: 62px;
+}
+
+#player-song-info {
+	float: left;
+}
+
+#player-controls {
+	height: 100%;
+}
+
+
+#player-controls i {
+	padding: 12px 20px;
+	vertical-align: middle;
+	line-height: 52px;
+}
+
+
+#player-controls i:hover {
+	cursor: pointer;
+	background-color: #E8E8E8;
+
+}

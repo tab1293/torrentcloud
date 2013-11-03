@@ -1,0 +1,12 @@
+a:hover {
+    cursor: pointer;
+}
+
+ul.nav li:hover {
+    cursor: pointer;
+}
+
+.full {
+	max-width: none;
+	width: 100%;
+}

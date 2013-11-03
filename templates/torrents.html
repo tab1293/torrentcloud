@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Torrents{% endblock %}
+{% block head %}
+<link rel="stylesheet" type="text/css" href="css/torrents.css">
+<script src="/js/twig.js"></script>
+<script>
+var pendingTimeout;
+var torrentDisplayTemplate = twig({
+    id: "torrentDisplay",
+    href: "templates/torrents/torrentDisplay.html",
+    async: false
+});
+
+function pollTorrents() {
+	$.get("/torrents/poll", function(response) {
+		response.torrents.forEach(function(torrent) { 
+			var html = twig({ ref: "torrentDisplay" }).render({torrent:torrent});
+			$("#"+torrent.hashString).children(".torrent-display-data").html(html);
+		});
+		pendingTimeout = setTimeout(function () { pollTorrents() }, response.timeout);
+
+	});
+
+}
+
+$(document).ready(function() {
+	
+	pendingTimeout = setTimeout(function () { pollTorrents() }, {{ timeout }});
+	$('#downloadTorrent').click(function() {
+		var postData = {'url': $('#torrentURL').val()};
+		$.post("/torrents/add", postData, function(response) {
+			clearTimeout(pendingTimeout);
+			pendingTimeout = setTimeout(function () { pollTorrents() }, response.timeout);
+			$("#client").append(response.torrent);
+		});
+	});
+
+	$(document).on('click', '.remove-torrent', function() {
+		var postData = {'torrentHash': $(this).parents(".torrent-listing").attr("id")};
+		$.post("/torrents/remove", postData, function(hashRemoved) {
+			$("#"+hashRemoved).remove();
+		});
+	});
+});
+</script>
+{% endblock %}
+{% block navBarForm %}
+<button data-toggle='modal' href='#download-modal' type="button" class="btn btn-default">Download</button>
+{% endblock %}
+{% block content %}
+<div class='row'>
+
+			<div id='client' class="col-lg-12">
+				
+				{% for torrent in torrents %}
+
+					{% include 'torrents/torrent.html' with {'torrent': torrent} %}
+					
+				{% endfor %}
+				
+			</div>
+		
+
+			
+		</div>
+
+		<div class="modal fade" id="download-modal">
+		    <div class="modal-dialog">
+		      <div class="modal-content">
+		        <div class="modal-header">
+		          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		          <h4 class="modal-title">Download Torrent</h4>
+		        </div>
+		        <div class="modal-body">
+		          	<textarea id="torrentURL" rows='3' class='form-control' placeholder="Enter torrent's magnet link here..."></textarea>
+		        </div>
+		        <div class="modal-footer">
+		        	<button id="downloadTorrent" class='btn btn-success'>Get Torrent</button>
+		          	<button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+		        </div>
+		      </div><!-- /.modal-content -->
+		    </div><!-- /.modal-dialog -->
+		</div><!-- /.modal -->
+
+		<div class="modal fade" id="metadata-modal">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+						<h4 class="modal-title">Find Torrent Info</h4>
+					</div>
+				<div class="modal-body">
+		       		<ul id='info-search-categories' class="nav nav-pills">
+						<li class="active"><a href="#">Music</a></li>
+						<li><a href="#">Movies</a></li>
+						<li><a href="#">TV Shows</a></li>
+					</ul>
+					<div id='music-search-container'>
+						<input class='metadata-search-input' id='music-search' placeholder='Enter the artist, album, or song'/>
+					</div>
+					<div id='metadata-search-results'>
+						
+					</div>
+				</div>
+				<div class="modal-footer">
+		        </div>
+				</div><!-- /.modal-content -->
+			 </div><!-- /.modal-dialog -->
+		</div><!-- /.modal -->
+{% endblock %}

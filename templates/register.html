@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block head %}
+<script>
+	$(document).ready(function() {
+		$("#register").click(function() {
+			var username = $("#username").val();
+			var password = $("#password").val();
+			var retypePassword = $("#retype-password").val();
+			var email = $("#email").val();
+			var data = {
+				"username":username,
+				"password":password,
+				"retypePassword": retypePassword,
+				"email":email
+			};
+
+			$.post("/register", data, function(html) {
+				$("#content").html(html);
+			});
+
+			return false;
+		});
+
+	});
+</script>
+{% endblock %}
+{% block title %}Register{% endblock %}
+{% block content %}
+<div id='content' class='row'>
+	<form class="form-horizontal" role="form">
+		<div class="form-group">
+			<label for="username" class="col-lg-2 control-label">Username</label>
+			<div class="col-lg-10">
+		    	<input type="text" class="form-control" name='username' id="username" placeholder="Username">
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="password" class="col-lg-2 control-label">Password</label>
+			<div class="col-lg-10">
+				<input type="password" class="form-control" name='password' id="password" placeholder="Password">
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="retype-password" class="col-lg-2 control-label">Retype Password</label>
+			<div class="col-lg-10">
+				<input type="password" class="form-control" name="retype-password" id="retype-password" placeholder="Password">
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="email" class="col-lg-2 control-label">Email</label>
+			<div class="col-lg-10">
+		    	<input type="email" class="form-control" name='email' id="email" placeholder="Email">
+			</div>
+		</div>
+	
+		<div class="form-group">
+			<div class="col-lg-offset-2 col-lg-10">
+				<button id='register' type="submit" class="btn btn-default">Register</button>
+			</div>
+		</div>
+	</form>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+.progress {
+    height: 12px;
+    margin-bottom: 5px;
+}
+
+.torrent-listing {
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+    border-bottom:1px solid #D5D5D5;
+}
+
+
+.torrent-name {
+
+}
+
+.torrent-actions {
+    font-size: 12px;
+    margin-right: 10px;
+}
+
+.torrent-info {
+    font-size:12px;
+}
+

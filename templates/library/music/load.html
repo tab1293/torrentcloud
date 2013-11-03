@@ -1,0 +1,15 @@
+{% extends ajax ? "ajax_base.html" : "library/music/base.html" %}
+
+{% if ajax == false %}
+	{% block songs %}
+		{{ allSongs|json_encode|raw }} 
+	{% endblock %}
+
+	{% block albumArtwork %}
+		{{ allAlbumArtwork|json_encode|raw }} 
+	{% endblock %}
+{% endif %}
+
+{% block content %}
+	{{ content }}
+{% endblock %}
