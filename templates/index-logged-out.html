@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block head %}
+<link rel="stylesheet" type="text/css" href="/css/index.css">
+<script>
+$(document).ready(function() {
+	$("input").keyup(function() { 
+		$(this).parents(".form-group").removeClass("has-error");
+	});
+	$("#login").click(function() {
+		var username = $("#username").val();
+		var password = $("#password").val();
+		var data = {
+			"username":username,
+			"password":password,
+		};
+		
+		var error = false;
+		var firstError = "";
+		if(!username) {
+			$("#usernameGroup").addClass("has-error");
+			error = true;
+			if(!firstError) {
+				firstError = "username";
+			}
+		}
+		
+		if(!password) {
+			$("#passwordGroup").addClass("has-error");
+			error = true;
+			if(!firstError) {
+				firstError = "password";
+			}
+		}
+		
+		if(error == true) {
+			if(firstError == "username") {
+				$("#error").text("Please enter a username!").show();
+			} else if(firstError == "password") {
+				$("#error").text("Please enter a password!").show();
+			}
+			$("#"+firstError).focus();
+			return false;
+		}
+
+		$.post("/login", data, function(response) {
+
+			if(response.status == true) {
+				window.location.replace("/");
+			} else {
+				$("#error").html(response.message);
+			}
+		}, "json");
+
+		return false;
+	});
+
+});
+</script>
+{% endblock %}
+{% block title %}Home{% endblock %}
+{% block navbar %}
+	{% include 'navbar-logged-out.html' %}
+{% endblock %}
+{% block content %}
+	 <div class="jumbotron row">
+	 	<div class='welcome-container col-md-7'>
+        	<h2>Welcome to the Torrent Cloud</h5>
+        	<h5>Download your torrents to the cloud for access anywhere. The Torrent Cloud organizes your files and helps share your media with friends. The application is still under development, click <a href="/request">here</a> to request membership. If you already have an invitation code click <a href='/register'>here</a> to register.</p>
+        </div>
+        <div class='login-container col-md-5'>
+	        <form class="form-horizontal" method="post" role="form">
+				<div id='usernameGroup' class="form-group">
+					<div class="col-lg-10">
+				    	<input type="username" class="form-control" name="username" id="username" placeholder="Username">
+					</div>
+				</div>
+				<div id='passwordGroup' class="form-group">
+					<div class="col-lg-10">
+						<input autocomplete="off" type="password" class="form-control" name="password" id="password" placeholder="Password">
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="col-lg-10">
+						<button type='submit' id='login' class="btn btn-default">Login</button>
+					</div>
+				</div>
+			</form>
+			<p id='error' class='text-danger'></p>
+		</div>
+      </div>
+{% endblock %}

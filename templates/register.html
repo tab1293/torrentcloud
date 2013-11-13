@@ -1,22 +1,98 @@
 {% extends "base.html" %}
 {% block head %}
 <script>
+	function IsEmail(email) {
+		var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+		return regex.test(email);
+	}
+
 	$(document).ready(function() {
+		$(".sidetip").hide();
+		$("input").keyup(function() { 
+			$(".sidetip").hide();
+			$(this).parents(".form-group").removeClass("has-error");
+		});
 		$("#register").click(function() {
 			var username = $("#username").val();
 			var password = $("#password").val();
 			var retypePassword = $("#retype-password").val();
 			var email = $("#email").val();
+			var invitation = $("#invitation").val();
 			var data = {
 				"username":username,
 				"password":password,
 				"retypePassword": retypePassword,
-				"email":email
+				"email":email,
+				"invitation":invitation
 			};
+			
+			var error = false;
+			var firstError = "";
+			if(!username) {
+				$("#usernameSidetip").text("Please enter a username!").show();
+				$("#usernameGroup").addClass("has-error");
+				error = true;
+				if(!firstError) {
+					firstError = "username";
+				}
+			}
+			
+			if(!password) {
+				$("#passwordSidetip").text("Please enter a password!").show();
+				$("#passwordGroup").addClass("has-error");
+				$("#retypePasswordGroup").addClass("has-error");
+				error = true;
+				if(!firstError) {
+					firstError = "password";
+				}
+			}
+			
+			if(password != retypePassword) {
+				$("#password").val("");
+				$("#retype-password").val("");
+				$("#passwordSidetip").text("Passwords do not match!").show();
+				$("#passwordGroup").addClass("has-error");
+				$("#retypePasswordGroup").addClass("has-error");
+				error = true;
+				if(!firstError) {
+					firstError = "password";
+				}
+			}
+			
+			if(!invitation) {
+				$("#invitationSidetip").text("Please enter an invitation code!").show();
+				$("#invitationGroup").addClass("has-error");
+				error = true;
+				if(!firstError) {
+					firstError = "invitation";
+				}
+			}
+			
+			
+			if(!IsEmail(email)) {
+				$("#email").val("");
+				$("#emailSidetip").text("Not a valid email!").show();
+				$("#emailGroup").addClass("has-error");
+				error = true;
+				if(!firstError) {
+					firstError = "email";
+				}
+			
+			}
+			
+			if(error == true) {
+				$("#"+firstError).focus();
+				return false;
+			}
 
-			$.post("/register", data, function(html) {
-				$("#content").html(html);
-			});
+			$.post("/register", data, function(response) {
+
+				if(response.status == true) {
+					$('#register-form').replaceWith("<p style='font-size:12px;'>" + response.message + "</p>");
+				} else {
+					$("#error").html(response.message);
+				}
+			}, "json");
 
 			return false;
 		});
@@ -25,39 +101,55 @@
 </script>
 {% endblock %}
 {% block title %}Register{% endblock %}
+{% block navbar %}
+	{% include 'navbar-logged-out.html' %}
+{% endblock %}
 {% block content %}
 <div id='content' class='row'>
-	<form class="form-horizontal" role="form">
-		<div class="form-group">
-			<label for="username" class="col-lg-2 control-label">Username</label>
-			<div class="col-lg-10">
-		    	<input type="text" class="form-control" name='username' id="username" placeholder="Username">
-			</div>
-		</div>
-		<div class="form-group">
-			<label for="password" class="col-lg-2 control-label">Password</label>
-			<div class="col-lg-10">
-				<input type="password" class="form-control" name='password' id="password" placeholder="Password">
-			</div>
-		</div>
-		<div class="form-group">
-			<label for="retype-password" class="col-lg-2 control-label">Retype Password</label>
-			<div class="col-lg-10">
-				<input type="password" class="form-control" name="retype-password" id="retype-password" placeholder="Password">
-			</div>
-		</div>
-		<div class="form-group">
-			<label for="email" class="col-lg-2 control-label">Email</label>
-			<div class="col-lg-10">
-		    	<input type="email" class="form-control" name='email' id="email" placeholder="Email">
-			</div>
-		</div>
 	
-		<div class="form-group">
-			<div class="col-lg-offset-2 col-lg-10">
-				<button id='register' type="submit" class="btn btn-default">Register</button>
-			</div>
+	<div class="jumbotron row">
+		<div class='col-md-9 col-md-offset-3'>
+			<h4>Register for the Torrent Cloud</h4>
+			<form id='register-form' class="form-horizontal" role="form">		
+				<div id="usernameGroup" class="form-group">
+					<div class="col-md-5">
+						<input type="text" class="form-control" name='username' id="username" placeholder="Username">
+					</div>
+					<p id="usernameSidetip" class="sidetip col-lg-4"></p>
+				</div>
+				<div id="passwordGroup" class="form-group">
+					<div class="col-md-5">
+						<input type="password" class="form-control" name='password' id="password" placeholder="Password" autocomplete="off">
+					</div>
+					<p id="passwordSidetip" class="sidetip col-lg-4"></p>
+				</div>
+				<div id="retypePasswordGroup" class="form-group">
+					<div class="col-md-5">
+						<input type="password" class="form-control" name="retype-password" id="retype-password" placeholder="Retype password"  autocomplete="off">
+					</div>
+					<p id="retypePasswordSidetip"  class="sidetip col-lg-4"></p>
+				</div>
+				<div id="emailGroup" class="form-group">
+					<div class="col-md-5">
+						<input type="email" class="form-control" name='email' id="email" placeholder="Email">
+					</div>
+					<p id="emailSidetip" class="sidetip col-lg-4"></p>
+				</div>
+				<div id="invitationGroup" class="form-group">
+					<div class="col-md-5">
+						<input type="invitation" class="form-control" name='invitation' id="invitation" placeholder="Invitation code">
+					</div>
+					<p id="invitationSidetip" class="sidetip col-lg-4"></p>
+				</div>
+			
+				<div class="form-group">
+					<div class="col-md-10">
+						<button id='register' type="submit" class="btn btn-default">Register</button>
+					</div>
+				</div>
+			</form>
+			<p id='errror' class='text-danger'></p>
 		</div>
-	</form>
+	</div>
 </div>
 {% endblock %}

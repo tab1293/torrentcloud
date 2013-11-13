@@ -1,13 +1,25 @@
-{% if torrent.status == 0 %}
-	<span class='torrent-info'>{{ torrent.display.downloaded }} of {{ torrent.display.size }} ({{ torrent.display.percentDone }}%)</span>
-	<div class='progress'><div class='progress-bar' style='width: {{ torrent.percentDone * 100 }}%;'></div></div>
-	<span class='torrent-info'>Finished</span>
-{% elseif (torrent.status == 1) or (torrent.status == 2) or (torrent.status == 3) or (torrent.status == 4)%}
-	<span class='torrent-info'>{{ torrent.display.downloaded }} of {{ torrent.display.size }} ({{ torrent.display.percentDone }}%) {{ torrent.display.timeRemaining }} remaining</span>
-	<div class='progress'><div class='progress-bar' style='width: {{ torrent.percentDone * 100 }}%;'></div></div>
-	<span class='torrent-info'>Downloading from {{ torrent.peersSendingToUs }} of {{ torrent.peersConnected }} peers - DL: {{ torrent.display.rateDownload }}, UL: {{ torrent.display.rateUpload }}</span>
-{% elseif (torrent.status == 5) or (torrent.status == 6) %}
-	<span class='torrent-info'>{{ torrent.display.downloaded }} of {{ torrent.display.size }} ({{ torrent.display.percentDone }}%) {{ torrent.display.timeRemaining }} remaining</span>
-	<div class='progress'><div class='progress-bar' style='width: {{ torrent.percentDone * 100 }}%;'></div></div>
-	<span class='torrent-info'>Seeding to {{ torrent.peersGettingFromUs }} of {{ torrent.peersConnected }} peers - UL: {{ torrent.display.rateUpload }}</span>
-{% endif %}
+<span class='torrent-name'>{{ torrent.name }}</span>
+<div class='torrent-actions btn-group pull-right'>
+	<button type="button" class="remove-torrent btn btn-default"><i class="fa fa-trash-o"></i></button>
+	{% if torrent.percentDone == 1%}
+		<button type="button" class="download-torrent btn btn-default"><i class="fa fa-cloud-download"></i></button>
+	{% else %}
+		<button disabled type="button" class="download-torrent btn btn-default"><i class="fa fa-cloud-download"></i></button>
+	{% endif %}
+</div>
+<br>
+<div class='torrent-display-data'>
+	{% if torrent.status == 0 %}
+		<span class='torrent-info'>{{ torrent.display.downloaded }} of {{ torrent.display.size }} ({{ torrent.display.percentDone }}%)</span>
+		<div class='progress'><div class='progress-bar' style='width: {{ torrent.percentDone * 100 }}%;'></div></div>
+		<span class='torrent-info'>Finished</span>
+	{% elseif (torrent.status == 1) or (torrent.status == 2) or (torrent.status == 3) or (torrent.status == 4)%}
+		<span class='torrent-info'>{{ torrent.display.downloaded }} of {{ torrent.display.size }} ({{ torrent.display.percentDone }}%) {{ torrent.display.timeRemaining }} remaining</span>
+		<div class='progress'><div class='progress-bar' style='width: {{ torrent.percentDone * 100 }}%;'></div></div>
+		<span class='torrent-info'>Downloading from {{ torrent.peersSendingToUs }} of {{ torrent.peersConnected }} peers - DL: {{ torrent.display.rateDownload }}, UL: {{ torrent.display.rateUpload }}</span>
+	{% elseif (torrent.status == 5) or (torrent.status == 6) %}
+		<span class='torrent-info'>{{ torrent.display.downloaded }} of {{ torrent.display.size }} ({{ torrent.display.percentDone }}%) {{ torrent.display.timeRemaining }} remaining</span>
+		<div class='progress'><div class='progress-bar' style='width: {{ torrent.percentDone * 100 }}%;'></div></div>
+		<span class='torrent-info'>Seeding to {{ torrent.peersGettingFromUs }} of {{ torrent.peersConnected }} peers - UL: {{ torrent.display.rateUpload }}</span>
+	{% endif %}
+</div>

@@ -1,13 +1,19 @@
 {% extends "base.html" %}
 {% block title %}Torrents{% endblock %}
 {% block head %}
-<link rel="stylesheet" type="text/css" href="css/torrents.css">
+<link rel="stylesheet" type="text/css" href="/css/torrents.css">
 <script src="/js/twig.js"></script>
 <script>
 var pendingTimeout;
 var torrentDisplayTemplate = twig({
     id: "torrentDisplay",
-    href: "templates/torrents/torrentDisplay.html",
+    href: "/templates/torrents/torrentDisplay.html",
+    async: false
+});
+
+var torrentMetadataTemplate = twig({
+    id: "torrentMetadataTemplate",
+    href: "/templates/torrents/torrentMetadata.html",
     async: false
 });
 
@@ -15,7 +21,7 @@ function pollTorrents() {
 	$.get("/torrents/poll", function(response) {
 		response.torrents.forEach(function(torrent) { 
 			var html = twig({ ref: "torrentDisplay" }).render({torrent:torrent});
-			$("#"+torrent.hashString).children(".torrent-display-data").html(html);
+			$("#"+torrent.hashString).html(html);
 		});
 		pendingTimeout = setTimeout(function () { pollTorrents() }, response.timeout);
 
@@ -26,26 +32,73 @@ function pollTorrents() {
 $(document).ready(function() {
 	
 	pendingTimeout = setTimeout(function () { pollTorrents() }, {{ timeout }});
-	$('#downloadTorrent').click(function() {
-		var postData = {'url': $('#torrentURL').val()};
+
+	// Download modal code 
+	var origDownloadModal = $('#download-modal').html();
+	$('#download-modal').on('hidden.bs.modal', function () {
+  		$('#download-modal').html(origDownloadModal);
+  		$('#closeDownloadModal').hide();
+		$('#addTorrent').hide();
+		$('#fetchTorrent').button('reset');
+	});
+
+	$('#closeDownloadModal').hide();
+	$('#addTorrent').hide();
+	$('#fetchTorrent').button('reset');
+	$(document).on('click', '#fetchTorrent', function() {
+		var torrentURL = $('#torrentURL').val();
+		var getData = {'torrentURL': torrentURL};
+		$('#download-modal').find('.modal-body').html("<p>Loading torrent metadata <span style='margin-left:5px;'><img src='/images/ajax-loader.gif' /></span></p>");
+		$('#fetchTorrent').attr('disabled', 'Fetching torrent');
+		$.get("/torrents/fetch", getData, function(response) {
+			if(response.error) {
+				if(response.torrentMetadata != null) {
+					var html = twig({ ref: "torrentMetadataTemplate" }).render({metadata:response.torrentMetadata});
+					$('#download-modal').find('.modal-body').html(html).append("<p>"+response.message+"</p>");
+				} else {
+					$('#download-modal').find('.modal-body').html("<p>"+response.message+"</p>");
+				}
+				$("#fetchingTorrent").hide();
+				$('#closeDownloadModal').show();
+			} else {
+				var html = twig({ ref: "torrentMetadataTemplate" }).render({metadata:response.torrentMetadata});
+				$('#download-modal').find('.modal-body').html(html);
+				$("#fetchTorrent").hide();
+				$('#download-modal').data('hashString', response.torrentMetadata.hashString);
+				$('#download-modal').data('torrentURL', torrentURL);
+				$('#download-modal').data('torrentSize', response.torrentMetadata.totalSize);
+				$('#addTorrent').show();
+			}
+		}, 'json');
+	});
+
+	$(document).on('click', '#addTorrent', function() {
+		var postData = {'torrentURL': $('#download-modal').data('torrentURL'), 'hashString':$('#download-modal').data('hashString'), 'torrentSize':$('#download-modal').data('torrentSize')};
 		$.post("/torrents/add", postData, function(response) {
 			clearTimeout(pendingTimeout);
 			pendingTimeout = setTimeout(function () { pollTorrents() }, response.timeout);
 			$("#client").append(response.torrent);
+			$('#download-modal').modal('hide')
+
 		});
-	});
+	});	
 
 	$(document).on('click', '.remove-torrent', function() {
 		var postData = {'torrentHash': $(this).parents(".torrent-listing").attr("id")};
-		$.post("/torrents/remove", postData, function(hashRemoved) {
-			$("#"+hashRemoved).remove();
-		});
+		$.post("/torrents/remove", postData, function(response) {
+			if(response.status) {
+				$("#"+response.torrentHash).remove();
+			} else {
+				alert(response.message);
+			}
+		}, 'json');
 	});
 });
 </script>
 {% endblock %}
-{% block navBarForm %}
-<button data-toggle='modal' href='#download-modal' type="button" class="btn btn-default">Download</button>
+{% block navbar %}
+	{% set vars = {'username': username} %}
+	{% include 'navbar-logged-in.html' with vars%}
 {% endblock %}
 {% block content %}
 <div class='row'>
@@ -59,6 +112,7 @@ $(document).ready(function() {
 				{% endfor %}
 				
 			</div>
+			<button type="button" data-toggle="modal" href='#download-modal' class="btn btn-success btn-lg btn-block"><i class="fa fa-plus fa-2x"></i></button>
 		
 
 			
@@ -75,12 +129,13 @@ $(document).ready(function() {
 		          	<textarea id="torrentURL" rows='3' class='form-control' placeholder="Enter torrent's magnet link here..."></textarea>
 		        </div>
 		        <div class="modal-footer">
-		        	<button id="downloadTorrent" class='btn btn-success'>Get Torrent</button>
-		          	<button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+		        	<button id="fetchTorrent" class='btn btn-success'>Fetch Torrent</button>
+		        	<button id="addTorrent" class='btn btn-success'>Add Torrent</button>
+		        	<button id='closeDownloadModal' class="btn btn-default" data-dismiss="modal">Close</button>
 		        </div>
-		      </div><!-- /.modal-content -->
-		    </div><!-- /.modal-dialog -->
-		</div><!-- /.modal -->
+		      </div>
+		    </div>
+		</div>
 
 		<div class="modal fade" id="metadata-modal">
 			<div class="modal-dialog">

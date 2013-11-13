@@ -1,15 +1,4 @@
 <div id='{{ torrent.hashString }}' class='torrent-listing'>
-	<span class='torrent-name'>{{ torrent.name }}</span>
-	<div class='dropdown btn-group pull-right'>
-		<a data-toggle='dropdown' href='#'>Action<span class='caret'></span></a>
-		<ul class='dropdown-menu'>
-			<li><a class='show-files'>Show Files</a></li>
-			<li><a data-toggle='modal' href='#metadata-modal' class='torrent-metadata'>Info</a></li>
-			<li><a class='remove-torrent'>Remove</a></li>
-		</ul>
-	</div>
-	<br>
-	<div class='torrent-display-data'>
-		{% include 'torrents/torrentDisplay.html' with {'torrent': torrent} %}
-	</div>
+	{% include 'torrents/torrentDisplay.html' with {'torrent': torrent} %}
+	
 </div>

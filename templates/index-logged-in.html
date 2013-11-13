@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block head %}
+<link rel="stylesheet" type="text/css" href="/css/index.css">
+{% endblock %}
+{% block title %}Home{% endblock %}
+{% block navbar %}
+	{% include 'navbar-logged-in.html' %}
+{% endblock %}
+{% block content %}
+		<h4>Feed</h4>
+  		<ul class="list-group">
+		  <li class="list-group-item">Still in the process of implementing the Torrent Cloud's feed feature! Why don't you download some <a href='/torrents'>torrents</a>?</li>
+		</ul>
+{% endblock %}

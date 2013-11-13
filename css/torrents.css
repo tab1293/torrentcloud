@@ -14,9 +14,8 @@
 
 }
 
-.torrent-actions {
-    font-size: 12px;
-    margin-right: 10px;
+.torrent-actions i {
+    margin-left: 5px;
 }
 
 .torrent-info {

@@ -7,9 +7,12 @@
 		public $username;
 		public $password;
 		public $email;
+		public $registered;
 		public $torrentHashes;
 		public $torrents;
 		public $friendUsernames;
+		public $spaceUsed;
+		public $spaceAllowed;
 
 		public function __construct($username) {
 			$this->userDB = new UserDB();
@@ -34,16 +37,12 @@
 		}
 
 		public function update() {
-			$this->torrentHashes = array();
-			foreach($this->torrents as $torrent) {
-				$this->torrentHashes[] = $torrent->hashString;
-			}
 			$this->userDB->update($this);
 		}
 
 		public function login($password) {
 			$passwordHash = md5($password);
-			if($passwordHash == $this->password) {
+			if($passwordHash == $this->password && $this->registered) {
 				return true;
 			}
 			else {
@@ -53,12 +52,14 @@
 		}
 
 		public function addTorrent(Torrent $torrent) {
+			$this->torrentHashes[] = $torrent->hashString;
 			$this->torrents[$torrent->hashString] = $torrent;
 			$this->update();
 			return $torrent;
 		}
 
 		public function removeTorrent(Torrent $torrent) {
+			unset($this->torrentHashes[array_search($torrent->hashString, $this->torrentHashes)]);
 			unset($this->torrents[$torrent->hashString]);
 			$this->update();
 			return $torrent->hashString;

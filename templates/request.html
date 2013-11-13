@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block head %}
+<script>
+	$(document).ready(function() { 
+		
+		$("#request").click(function() {
+			var name = $("#name").val();
+
+			var email = $("#email").val();
+			var data = {
+				"name":name,
+				"email":email
+			};
+			$.post("/request", data, function(message) {
+				$("#request-form").replaceWith("<p style='font-size:12px;'>"+message+"</p>");
+			});
+			return false;
+		});
+		
+	});
+</script>
+{% endblock %}
+{% block title %}Request membership{% endblock %}
+{% block navbar %}
+	{% include 'navbar-logged-out.html' %}
+{% endblock %}
+{% block content %}
+	<div class="jumbotron row">
+	 	<div class='login-container col-md-5 col-md-offset-3'>
+			<h4>Request an invitation code</h4>
+	      <form id='request-form' class="form-horizontal" method="post" role="form">
+				<div class="form-group">
+					<div class="col-lg-10">
+				    	<input type="name" class="form-control" name="name" id="name" placeholder="Name">
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="col-lg-10">
+				    	<input class="form-control" name="email" id="email" placeholder="Email address">
+					</div>
+				</div>
+				<button type='submit' id='request' class="btn btn-default">Request</button>
+			</form>
+		</div>
+   </div>
+{% endblock %}

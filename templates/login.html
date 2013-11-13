@@ -1,27 +1,110 @@
 {% extends "base.html" %}
 {% block title %}Login{% endblock %}
 {% block head %}
+<script>
+$(document).ready(function() {
+	$(".sidetip").hide();
+	$("input").keyup(function() { 
+		$(".sidetip").hide();
+		$(this).parents(".form-group").removeClass("has-error");
+	});
+	$("#login").click(function() {
+		var username = $("#username").val();
+		var password = $("#password").val();
+		var data = {
+			"username":username,
+			"password":password,
+		};
+		
+		var error = false;
+		var firstError = "";
+		if(!username) {
+			$("#usernameSidetip").text("Please enter a username!").show();
+			$("#usernameGroup").addClass("has-error");
+			error = true;
+			if(!firstError) {
+				firstError = "username";
+			}
+		}
+		
+		if(!password) {
+			$("#passwordSidetip").text("Please enter a password!").show();
+			$("#passwordGroup").addClass("has-error");
+			$("#retypePasswordGroup").addClass("has-error");
+			error = true;
+			if(!firstError) {
+				firstError = "password";
+			}
+		}
+		
+		if(error == true) {
+			$("#"+firstError).focus();
+			return false;
+		}
+
+		$.post("/login", data, function(response) {
+
+			if(response.status == true) {
+				window.location.replace("/");
+			} else {
+				$("#error").html(response.message);
+			}
+		}, "json");
+
+		return false;
+	});
+
+});
+</script>
+{% endblock %}
+{% block navbar %}
+	{% include 'navbar-logged-out.html' %}
 {% endblock %}
 {% block content %}
-<div id='content' class='row'>
-	<form class="form-horizontal" method="post" role="form" action="/login">
-		<div class="form-group">
-			<label for="username" class="col-lg-2 control-label">Username</label>
-			<div class="col-lg-10">
-		    	<input type="username" class="form-control" name="username" id="username" placeholder="Username">
-			</div>
+<div class="jumbotron row">
+	<div class='col-md-9 col-md-offset-3'>
+		<h4>Sign in to the Torrent Cloud</h4>
+		<form id='login-form' class="form-horizontal" role="form">		
+			<div id="usernameGroup" class="form-group">
+					<div class="col-md-5">
+						<input type="text" class="form-control" name='username' id="username" placeholder="Username">
+					</div>
+					<p id="usernameSidetip" class="sidetip text-danger col-lg-4"></p>
+				</div>
+				<div id="passwordGroup" class="form-group">
+					<div class="col-md-5">
+						<input type="password" class="form-control" name='password' id="password" placeholder="Password" autocomplete="off">
+					</div>
+					<p id="passwordSidetip" class="sidetip text-danger col-lg-4"></p>
+				</div>
+				<div class="form-group">
+					<div class="col-md-5">
+						<button id='login' type="submit" class="btn btn-default">Login</button>
+						<small style='font-size:12px;' class='pull-right'>Request <a href='/request'>membership</a></small>
+					</div>
+				</div>
+			</form>
+			<p id='error' class='text-danger'></p>
 		</div>
-		<div class="form-group">
-			<label for="password" class="col-lg-2 control-label">Password</label>
-			<div class="col-lg-10">
-				<input type="password" class="form-control" name="password" id="password" placeholder="Password">
+	</div>
+
+<!--<div class="jumbotron row">
+	<div class='login-container col-md-5 col-md-offset-3'>
+			<h4>Sign in to the Torrent Cloud</h4>
+		<form class="form-horizontal" method="post" role="form" action="/login">
+			<div class="form-group">
+				<div class="col-md-10">
+					<input type="username" class="form-control" name="username" id="username" placeholder="Username">
+				</div>
 			</div>
-		</div>
-		<div class="form-group">
-			<div class="col-lg-offset-2 col-lg-10">
-				<button id='login' class="btn btn-default">Login</button>
+			<div class="form-group">
+				<div class="col-lg-10">
+					<input autocomplete="off" type="password" class="form-control" name="password" id="password" placeholder="Password">
+				</div>
 			</div>
-		</div>
-	</form>
-</div>
+			<button type='submit' id='login' class="btn btn-default">Login</button>
+			<small style='margin-right:70px; font-size:12px;' class='pull-right'>Request <a href='/request'>membership</a></small>
+		</form>
+	</div>
+</div>-->
 {% endblock %}

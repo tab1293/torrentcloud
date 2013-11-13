@@ -16,6 +16,8 @@
 		const RATE_DOWNLOAD = "rateDownload";
 		const RATE_UPLOAD = "rateUpload";
 		const UPLOAD_RATIO = "uploadRatio";
+		const USERS = "users";
+		const USER_SPACE = "userSpace";
 
 		private $torrentCollection;
 
@@ -29,20 +31,25 @@
 			if(is_array($hashStrings)) {
 				foreach($hashStrings as $hashString) {
 					$torrentData = $this->torrentCollection->findOne(array("hashString"=>$hashString));
-					$torrents[] = new Torrent($torrentData);
+					if(isset($torrentData)) {
+						$torrents[] = new Torrent($torrentData);
+					}
 				}
 			} else {
 				$torrentData = $this->torrentCollection->findOne(array("hashString"=>$hashStrings));
-				return new Torrent($torrentData);
+				if(is_null($torrentData)) {
+					return null;
+				} else {
+					return new Torrent($torrentData);
+				}
 			}
 			return $torrents;
 		}
 
-		public function add($torrent) {
-			$hashString = $torrent["hashString"];
-			$torrentFound = $this->torrentCollection->findOne(array("hashString"=>$hashString));
+		public function add($torrentData) {
+			$torrentFound = $this->torrentCollection->findOne(array("hashString"=>$torrentData[self::HASH_STRING]));
 			if(is_null($torrentFound)) {
-				$this->torrentCollection->insert($torrent);
+				$this->torrentCollection->insert($torrentData);
 			} 
 		}
 
@@ -54,6 +61,7 @@
 			$updateSelect = array(self::HASH_STRING=>$torrent->hashString);
 			$updateQuery = array(
 						self::FILES=>$torrent->files,
+						self::TOTAL_SIZE=>$torrent->totalSize,
 						self::ETA=>$torrent->eta,
 						self::STATUS=>$torrent->status,
 						self::PEERS_CONNECTED=>$torrent->peersConnected,
@@ -63,6 +71,15 @@
 						self::RATE_DOWNLOAD=>$torrent->rateDownload,
 						self::RATE_UPLOAD=>$torrent->rateUpload,
 						self::UPLOAD_RATIO=>$torrent->uploadRatio,
+					);
+			$this->torrentCollection->update($updateSelect, array('$set'=>$updateQuery));
+		}
+		
+		public function updateUsers(Torrent $torrent) {
+			$updateSelect = array(self::HASH_STRING=>$torrent->hashString);
+			$updateQuery = array(
+						self::USERS=>$torrent->users,
+						self::USER_SPACE=>$torrent->userSpace,
 					);
 			$this->torrentCollection->update($updateSelect, array('$set'=>$updateQuery));
 		}
