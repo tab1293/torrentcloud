@@ -72,7 +72,7 @@
 			$torrentName = $app->request->get('torrentName');
 			$torrentName = str_replace(array('/', ':', '*', '?', '<', '>', '|'), '', $torrentName);
 			$torrentName = preg_replace('/[[:space:]]+/', '_', $torrentName);
-			$torrentDir = Transmission::TORRENT_DIR . $torrentHash . "/";
+			$torrentDir = TorrentCloud::TORRENT_DIR . $torrentHash . "/";
 			$torrentZipDB = new TorrentZipDB();
 			$torrentZipFound = $torrentZipDB->get($torrentHash);
 			header('Content-Type: application/zip');
