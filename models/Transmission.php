@@ -1,7 +1,6 @@
 <?php
 
 	class Transmission {
-		const TORRENT_DIR = "/var/www/torrents/";
 
 		private $url;
 		private $user;
@@ -42,7 +41,7 @@
 		}
 		
 		function add($url, $downloadDir, $paused=false) {
-			$args = array( "method" => "torrent-add", "arguments" => array("filename" => $url, "download-dir"=>self::TORRENT_DIR . $downloadDir, "paused"=>$paused));
+			$args = array( "method" => "torrent-add", "arguments" => array("filename" => $url, "download-dir"=>$downloadDir, "paused"=>$paused));
 			$response = $this->request($args);
 			$result = $response["result"];
 			if ($result == "success") {

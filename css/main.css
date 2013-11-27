@@ -2,6 +2,10 @@ body {
 	padding-top: 60px;
 }
 
+.container-liquid {
+	padding: 0 15px;
+}
+
 a:hover {
     cursor: pointer;
 }
@@ -26,4 +30,8 @@ p.sidetip {
 
 .jumbotron p {
 	font-size:12px;
+}
+
+.modal {
+    overflow-y: hidden;
 }

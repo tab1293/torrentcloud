@@ -50,7 +50,8 @@ class MusicScraper {
 		curl_setopt($this->ch, CURLOPT_URL, $artistInfoURL);
 		$artistResults = json_decode(curl_exec($this->ch), true);
 		if(isset($artistResults['error'])) {
-			return $this->defaultArtistImage;
+			return null;
+			//return $this->defaultArtistImage;
 		}
 		$artistInfo = $artistResults['artist'];
 		$name = $artistInfo['name'];
@@ -62,14 +63,16 @@ class MusicScraper {
 		}
 		if(isset($artistImageURL)) {
 			$artistImageExtension = strrchr($artistImageURL, ".");
-			$artistImageFile = "/var/www/libraryData/music/artistImages/".$name.$artistImageExtension;
-			file_put_contents($artistImageFile, file_get_contents($artistImageURL));
+			$artistImageFile = $name.$artistImageExtension;
+			return array("imageName"=>$artistImageFile, "imageUrl"=>$artistImageURL);
+			//file_put_contents($artistImageFile, file_get_contents($artistImageURL));
 		}
 		else {
-			$artistImageFile = $this->defaultArtistImage;
+			return null;
+			//$artistImageFile = $this->defaultArtistImage;
 		}
-		$artistImageFile = str_replace("/var/www/", "", $artistImageFile);
-		return $artistImageFile;
+		//$artistImageFile = str_replace("/var/www/", "", $artistImageFile);
+		//return $artistImageFile;
 	}
 
 

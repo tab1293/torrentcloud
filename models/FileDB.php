@@ -1,35 +1,51 @@
 <?php
-
-	const TORRENT_HASH = "torrentHash";
-	const NAME = "name";
-	const SIZE = "size";
-	const DIRECTORY = "directory";
-	const PATH = "path";
-	const URL = "url";
-	const DISPLAY = "display";
-	const EXTENSION = "extension";
-	const MIME_TYPE = "MIME_type";
-	const TAGS = "tags";
-
 	class FileDB {
+		
+		const ID = "_id";
+		const TORRENT_HASH = "torrentHash";
+		const NAME = "name";
+		const EXTENSION = "extension";
+		const SIZE = "size";
+		const PATH = "path";
+		const MIME_TYPE = "MIME_type";
+		const TAGS = "tags";
+		const ARTWORK_FILE = "artworkFile";
+		const ARTWORK_MIME = "artworkMIME";
 
-		private $fileCollection;
+		private $fileDB;
 
 		public function __construct() {
 			$m = new MongoClient();
-			$this->fileCollection = $m->torrentcloud->files;
+			$this->fileDB = $m->torrentcloud->files;
+		}
+		
+		public function get($id) {
+			$mongoId = new MongoId($id);
+			$file = null;
+			$fileFound = $this->fileDB->findOne(array(self::ID=>$mongoId));
+			if($fileFound) {
+				if(isset($fileFound[self::TORRENT_HASH])) {
+					$file = new TorrentFile($fileFound);
+				} else {
+					//$file = new File($fileFound);
+				}
+			}
+			
+			return $file; 
 		}
 
 		public function add(File $file) {
-			$fileFound = $this->fileCollection->findOne(array(PATH=>$file->path));
+			$mongoId = new MongoId($file->id);
+			$fileFound = $this->fileDB->findOne(array(self::ID=>$mongoId));
 			if(empty($fileFound)) {
 				$fileData = get_object_vars($file);
-				$this->fileCollection->insert($fileData);
+				unset($fileData['id']);
+				$this->fileDB->insert($fileData);
 			}
 		}
 
 		public function getTorrentFiles(Torrent $torrent) {
-			$fileCursor = $this->fileCollection->find(array(TORRENT_HASH=>$torrent->hashString));
+			$fileCursor = $this->fileDB->find(array(self::TORRENT_HASH=>$torrent->hashString));
 
 			$files = array();
 			foreach($fileCursor as $file) {
@@ -37,8 +53,22 @@
 			}
 			return $files;
 		}
+		
+		public function removeTorrentFiles(Torrent $torrent) {
+			$this->fileDB->remove(array(self::TORRENT_HASH=>$torrent->hashString));
+		
+		}
+		
+		public function getArtwork($name) {
+			$artworkFound = $this->fileDB->findOne(array(self::ARTWORK_FILE=>$name));
+			if($artworkFound) {
+				return array(self::ARTWORK_FILE=>$artworkFound[self::ARTWORK_FILE], self::ARTWORK_MIME=>$artworkFound[self::ARTWORK_MIME]);
+			} else {
+				return null;
+			}
+		
+		}
 
 	}
-
 
 ?>

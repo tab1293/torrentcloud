@@ -1,5 +1,23 @@
 body { padding-bottom: 70px; }
 
+.panel-heading {
+
+	padding-top: 5px;
+	padding-bottom: 0px;
+}
+
+.panel-body {
+	padding: 0px 0px 15px 0px;
+}
+
+#spinnerOverlay {
+	position: absoulte;
+    top: 50%;
+    left: 50%;
+    opacity: .5;
+    z-index: 500;
+}
+
 .artist-listing {
 	margin-top: 20px;
 	margin-bottom: 20px;
@@ -18,7 +36,8 @@ body { padding-bottom: 70px; }
 }
 
 .album-listing {
-	margin-bottom: 15px;
+	margin-top: 20px;
+	margin-bottom: 20px;
 	width: 160px;
 	height:160px;
 	padding:0px;

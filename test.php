@@ -1,6 +1,70 @@
 <?php
-	$magnet_uri = "magnet:?xt=urn:btih:5baa50233d6ad6a46d02b01d8b0e01626e6a9a17&dn=Jay-Z+-+Magna+Carta+Holy+Grail+%5B320kbps%5D-2013&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80&tr=udp%3A%2F%2Ftracker.publicbt.com%3A80&tr=udp%3A%2F%2Ftracker.istole.it%3A6969&tr=udp%3A%2F%2Ftracker.ccc.de%3A80&tr=udp%3A%2F%2Fopen.demonii.com%3A1337";
-	$return = exec('python /var/www/torrentcloud/python/magnet2metadata.py ' . $magnet_uri);
-	$data = json_decode($return);
-	var_dump($data);
+/*$file = "/tmp/2AeAqs/Jay-Z_-_Magna_Carta_Holy_Grail_[320kbps]-2013.zip";
+header('Content-Type: application/octet-stream');
+header('Content-Disposition: attachment; filename='.basename($file));
+header('Content-Length: ' . filesize($file));
+ob_clean();
+flush();
+readfile($file);
+*/
+/*include("models/ZipStream.php");
+$zip = new ZipStream('foo.zip');
+$zip->add_file_from_path('jay.zip', '/home/tom/jayz.zip');
+$zip->finish();*/
+
+/*include("models/ZipStream.php");
+$torrentHash = $_GET['torrentHash'];
+$torrentName = $_GET['torrentName'];
+$torrentName = str_replace(array('/', ':', '*', '?', '<', '>', '|'), '', $torrentName);
+$torrentName = preg_replace('/[[:space:]]+/', '_', $torrentName);
+$torrentDir = '/var/www/torrents/' . $torrentHash . '/';
+flush();
+header('Transfer-Encoding', 'chunked');
+$zip = new ZipStream($torrentName . '.zip');
+$zip->addDirectoryContent($torrentDir, $torrentName);
+//echo $zip->streamFileLength;
+//header('Content-Length: ' . $zip->streamFileLength);
+return $zip->finalize();*/
+
+			/*$torrentHash = $app->request->get('torrentHash');
+			$torrentName = $app->request->get('torrentName');
+			$torrentName = str_replace(array('/', ':', '*', '?', '<', '>', '|'), '', $torrentName);
+			$torrentName = preg_replace('/[[:space:]]+/', '_', $torrentName);
+			$torrentDir = Transmission::TORRENT_DIR . $torrentHash . "/";
+			//$torrentZipDB = new TorrentZipDB();
+			//$torrentZipFound = $torrentZipDB->get($torrentHash);
+			$app->response->headers->set('Content-Type', 'application/zip');
+			$app->response->headers->set('Content-disposition', "filename=".$torrentName.".zip");
+			//if($torrentZipFound) {
+
+			//} else {
+
+				$tempName = tempnam(sys_get_temp_dir(),'');
+				$zipFile = fopen($tempName, 'w');
+				$zipPipe = popen('zip -j -r0 - ' . $torrentDir, 'r');
+				$bufsize = 8192;
+				$buff = '';
+				while(!feof($zipPipe) ) {
+					$buff = fread($zipPipe, $bufsize);
+					fwrite($zipFile, $buff);
+				}
+				pclose($zipPipe);
+				fclose($zipFile);
+				ob_end_clean();
+				flush();
+				$app->response->headers->set('Content-Description', 'File Transfer');
+				$app->response->headers->set('Content-Type', 'application/zip');
+				$app->response->headers->set('Content-disposition', "filename=".$torrentName.".zip");
+				$app->response->headers->set('Content-Transfer-Encoding', 'binary');
+				$app->response->headers->set('Expires', 0);
+				$app->response->headers->set('Cache-Control', 'must-revalidate');
+				$app->response->headers->set('Pragma', 'public');
+				$app->response->headers->set('Content-Length', filesize($tempName));
+				readfile($tempName);
+				unlink($tempName);
+			//}*/
+			
+			var_dump(parse_ini_file("/etc/php5/fpm/php.ini"));
+
+
 ?>

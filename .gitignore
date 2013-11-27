@@ -1,4 +1,1 @@
-libraryData/
-users/
-torrents/*
-!torrents/*.*
+constants.php

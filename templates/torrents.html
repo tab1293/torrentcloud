@@ -79,9 +79,52 @@ $(document).ready(function() {
 			pendingTimeout = setTimeout(function () { pollTorrents() }, response.timeout);
 			$("#client").append(response.torrent);
 			$('#download-modal').modal('hide')
+			$('#add-tip').remove();
 
 		});
-	});	
+		return false;
+	});
+
+
+	/*$(document).on('click', '.download-torrent', function(e) {
+		var torrentHash = $(this).parents(".torrent-listing").attr("id");
+		var torrentName = $(this).parent().prev().text()
+		var postData = {'torrentHash': torrentHash, 'torrentName': torrentName};
+		$(this).popover({content: "Preparing download <i class='fa fa-spinner fa-spin'></i>", placement:"right", container: 'body', html: true});
+		$(this).popover('show');
+		var button = $(this);
+
+		$.post("/torrents/download", postData, function(response) {
+			if(response.status) {
+				console.log(button);
+				button.popover('destroy');
+				$("body").append("<iframe src='" + "/torrents/download?zipFile="+response.zipFilename + "' style='display: none;' ></iframe>");
+			} else {
+				alert(response.message);
+			}
+		}, 'json');
+		
+	
+	});*/
+
+	$(document).on('click', '.download-torrent', function(e) { 
+		var torrentHash = $(this).parents(".torrent-listing").attr("id");
+		var torrentName = $(this).parent().prev().text();
+		var iframeId = "iframe-" + torrentHash;
+
+		$(this).popover({content: "Preparing download <i class='fa fa-spinner fa-spin'></i>", placement:"right", container: 'body', html: true});
+		$(this).popover('show');
+		var button = $(this);
+
+		$("#"+iframeId).remove();
+		$("body").append("<iframe id='"+iframeId+"' src='/torrents/download?torrentHash="+torrentHash + "&torrentName="+torrentName+"' style='display: none;' ></iframe>");
+		$("#"+iframeId).load(function() {
+			button.popover('destroy');
+		});
+		
+		return false;
+
+	});
 
 	$(document).on('click', '.remove-torrent', function() {
 		var postData = {'torrentHash': $(this).parents(".torrent-listing").attr("id")};
@@ -103,63 +146,38 @@ $(document).ready(function() {
 {% block content %}
 <div class='row'>
 
-			<div id='client' class="col-lg-12">
-				
-				{% for torrent in torrents %}
-
-					{% include 'torrents/torrent.html' with {'torrent': torrent} %}
-					
-				{% endfor %}
-				
-			</div>
-			<button type="button" data-toggle="modal" href='#download-modal' class="btn btn-success btn-lg btn-block"><i class="fa fa-plus fa-2x"></i></button>
+	<div id='client' class="col-lg-12">
 		
+		{% if torrents is empty %}
+			<p id='add-tip' class='text-center'>Click on the big green button below to add some torrents!</p>
+		
+		{% else %}
+			{% for torrent in torrents %}
+				{% include 'torrents/torrent.html' with {'torrent': torrent} %}
+			{% endfor %}
+		{% endif %}
+		
+	</div>
+	<button type="button" data-toggle="modal" href='#download-modal' class="btn btn-success btn-lg btn-block"><i class="fa fa-plus fa-2x"></i></button>
+</div>
 
-			
+<div class="modal fade" id="download-modal">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h4 class="modal-title">Download Torrent</h4>
+			</div>
+			<div class="modal-body">
+				<textarea id="torrentURL" rows='3' class='form-control' placeholder="Enter torrent's magnet link here..."></textarea>
+			</div>
+			<div class="modal-footer">
+				<button id="fetchTorrent" class='btn btn-success'>Fetch Torrent</button>
+				<button id="addTorrent" class='btn btn-success'>Add Torrent</button>
+				<button id='closeDownloadModal' class="btn btn-default" data-dismiss="modal">Close</button>
+			</div>
 		</div>
+	</div>
+</div>
 
-		<div class="modal fade" id="download-modal">
-		    <div class="modal-dialog">
-		      <div class="modal-content">
-		        <div class="modal-header">
-		          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-		          <h4 class="modal-title">Download Torrent</h4>
-		        </div>
-		        <div class="modal-body">
-		          	<textarea id="torrentURL" rows='3' class='form-control' placeholder="Enter torrent's magnet link here..."></textarea>
-		        </div>
-		        <div class="modal-footer">
-		        	<button id="fetchTorrent" class='btn btn-success'>Fetch Torrent</button>
-		        	<button id="addTorrent" class='btn btn-success'>Add Torrent</button>
-		        	<button id='closeDownloadModal' class="btn btn-default" data-dismiss="modal">Close</button>
-		        </div>
-		      </div>
-		    </div>
-		</div>
-
-		<div class="modal fade" id="metadata-modal">
-			<div class="modal-dialog">
-				<div class="modal-content">
-					<div class="modal-header">
-						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-						<h4 class="modal-title">Find Torrent Info</h4>
-					</div>
-				<div class="modal-body">
-		       		<ul id='info-search-categories' class="nav nav-pills">
-						<li class="active"><a href="#">Music</a></li>
-						<li><a href="#">Movies</a></li>
-						<li><a href="#">TV Shows</a></li>
-					</ul>
-					<div id='music-search-container'>
-						<input class='metadata-search-input' id='music-search' placeholder='Enter the artist, album, or song'/>
-					</div>
-					<div id='metadata-search-results'>
-						
-					</div>
-				</div>
-				<div class="modal-footer">
-		        </div>
-				</div><!-- /.modal-content -->
-			 </div><!-- /.modal-dialog -->
-		</div><!-- /.modal -->
 {% endblock %}

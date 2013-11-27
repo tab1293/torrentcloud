@@ -4,11 +4,15 @@
 		private $user;
 		private $torrentDB;
 		private $torrentMetadataDB;
+		private $fileDB;
 		private $transmission;
+
+		const TORRENT_DIR = "/var/www/torrents/";
 
   		public function __construct(User $user) {
 			$this->torrentDB = new TorrentDB();
 			$this->torrentMetadataDB = new TorrentMetadataDB();
+			$this->fileDB = new FileDB();
 			$this->user = $user;
 			$this->transmission = new Transmission(TRANSMISSION_URL, TRANSMISSION_USER, TRANSMISSION_PASS);
 		}
@@ -57,7 +61,7 @@
 				// Check if the torrent already exists in our database
 				$existingTorrent = $this->torrentDB->get($hashString);
 				if(empty($existingTorrent)) {
-					$addedHashString = $this->transmission->add($torrentURL, $hashString);
+					$addedHashString = $this->transmission->add($torrentURL, self::TORRENT_DIR.$hashString);
 					$torrentData = $this->transmission->poll($addedHashString);
 					$torrentData[TorrentDB::TOTAL_SIZE] = $torrentSize;
 					$torrentData[TorrentDB::USER_SPACE] = $torrentSize;
@@ -88,7 +92,7 @@
 		public function getMagnetMetadata($magnetUri) {
 			$torrentHash = $this->torrentHashFromMagnetUri($magnetUri);
 			if(is_null($torrentHash) || is_null($this->torrentMetadataDB->get($torrentHash))) {
-				$torrentData = json_decode(exec("python /var/www/torrentcloud/python/magnet2metadata.py '" . $magnetUri . "'"), true);
+				$torrentData = json_decode(exec("python /var/www/torrentcloud/scripts/python/magnet2metadata.py '" . $magnetUri . "'"), true);
 				if(!isset($torrentData['error'])) {
 					$torrentMetadata = array(
 										TorrentMetadataDB::NAME => $torrentData['name'],
@@ -168,6 +172,7 @@
 				if(count($torrentToRemove->users) == 0) {
 					$transmission = new Transmission(TRANSMISSION_URL, TRANSMISSION_USER, TRANSMISSION_PASS);
 					$this->torrentDB->remove($torrentToRemove->hashString);
+					$this->fileDB->removeTorrentFiles($torrentToRemove);
 					$transmission->remove($torrentToRemove->hashString);
 				}
 				
@@ -218,6 +223,61 @@
 			} else if($stopped) {
 				return STOPPED_POLL_TIME;
 			}
+		}
+		
+		public function zipTorrent($torrentHash, $torrentName) {
+			if(in_array($torrentHash, $this->user->torrentHashes)) {
+				$torrentName = str_replace(array('/', ':', '*', '?', '<', '>', '|'), '', $torrentName);
+				$torrentName = preg_replace('/[[:space:]]+/', '_', $torrentName);
+				$tempDir = tempnam(sys_get_temp_dir(),'');
+				if(file_exists($tempDir)) { 
+					unlink($tempDir); 
+				}
+				mkdir($tempDir);
+				if (is_dir($tempDir)) {
+					$zipFilename = $tempDir . "/" . $torrentName . ".zip";
+					$torrentDir = Transmission::TORRENT_DIR . $torrentHash . "/";
+					system("zip -r0 " . $zipFilename . " " . $torrentDir, $returnValue);
+					/*$zip = new ZipArchive();
+					$zipFilename = $tempDir . "/" . $torrentName . ".zip";
+					$torrentDir = Transmission::TORRENT_DIR . $torrentHash . "/";
+					system("zip -r -q " . $zipFilename . " " . $torrentDir, $returnValue);
+					if ($zip->open($zipFilename, ZipArchive::CREATE)!==TRUE) {
+					    exit("cannot open <$filename>\n");
+					}
+					$torrentDir = Transmission::TORRENT_DIR . $torrentHash . "/";
+					$this->addFolderToZip($torrentDir, $zip);
+					$value = $zip->close();*/
+					if($returnValue == 0) {
+						return array("status"=>true, "zipFilename"=>$zipFilename);
+					}
+				}
+			}
+			return array("status"=>false, "message"=>"There was an error zipping your file for download");
+		
+		}
+		
+		public function addFolderToZip($dir, $zipArchive, $zipdir = ''){
+		    if (is_dir($dir)) {
+		        if ($dh = opendir($dir)) {
+		            //Add the directory
+		            $zipArchive->addEmptyDir($dir);
+		            // Loop through all the files
+		            while (($file = readdir($dh)) !== false) {
+		                //If it's a folder, run the function again!
+		                if(!is_file($dir . $file)){
+		                    // Skip parent and root directories
+		                    if( ($file !== ".") && ($file !== "..")){
+		                        $this->addFolderToZip($dir . $file . "/", $zipArchive, $zipdir . $file . "/");
+		                    }
+		                } else{
+		                    // Add the files
+		                    $zipArchive->addFile($dir . $file, $zipdir . $file);
+		                   
+		                }
+		            }
+		        }
+		    }
 		}
 
 	}

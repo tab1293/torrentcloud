@@ -1,14 +1,12 @@
 <?php
+	spl_autoload_register(function ($class) {
+    	require_once 'models/' . $class . '.php';
+	});
 	
 	session_cache_limiter(false);
 	session_start();
 
 	require 'composer/vendor/autoload.php';
-
-	spl_autoload_register(function ($class) {
-    	require_once 'models/' . $class . '.php';
-	});
-
   	require "constants.php";
 	ini_set('mongo.native_long', 1);
 	
@@ -33,38 +31,8 @@
         }
 	};
 
-	/*
-	$app->add(new \Slim\Middleware\SessionCookie(array(
-	    'expires' => '20 minutes',
-	    'path' => '/',
-	    'domain' => null,
-	    'secure' => false,
-	    'httponly' => false,
-	    'name' => 'slim_session',
-	    'secret' => 'CHANGE_ME',
-	    'cipher' => MCRYPT_RIJNDAEL_256,
-	    'cipher_mode' => MCRYPT_MODE_CBC
-	)));
-
-	$app->view(new \Slim\Views\Twig());
-	$app->view->parserOptions = array(
-        'charset' => 'utf-8',
-        'cache' => realpath('./cache'),
-        'auto_reload' => true,
-        'strict_variables' => false,
-        'autoescape' => true
-    );
-
-    $app->view->parserExtensions = array(new \Slim\Views\TwigExtension());
-	$app->view()->twigTemplateDirs = array("templates"); 
-	*/
-
-
-
-
-
-
 	include 'controllers/torrents.php';
+	include 'controllers/music.php';
 	//require 'controllers/library.php';
 
 	$app->get('/', function() use ($app) {
@@ -154,7 +122,25 @@
 		$userCollection = new UserDB();
 		$userCreated = $userCollection->insert($username, $password, $retypePassword, $email);
 		if($userCreated['status']) {
-			$subject = "Complete your registration at the Torrent Cloud";
+			$data = array("code"=>$invitationCode);
+			$sth = $DBH->prepare("SELECT code FROM invitation_codes WHERE code = :code");
+			$sth->execute($data);
+			if(!empty($sth->fetch())) {
+				$sth = $DBH->prepare("DELETE FROM invitation_codes WHERE code = :code");
+				$sth->execute($data);
+			} else {
+				echo json_encode(array('status'=>false, 'message'=>'You have not entered a valid invitation code'));
+				return;
+			}
+			$user = new User($username);
+			$user->registered = true;
+			$user->update();
+			$_SESSION['AUTHED'] = true;
+			$_SESSION['username'] = $username;
+			$_SESSION['validTorrents'] = array();
+			$app->redirect("/");
+
+			/*$subject = "Complete your registration at the Torrent Cloud";
 			$link = "www.thetorrentcloud.com/complete-registration?username=" . $username . "&code=" . $invitationCode;
 			$message = "Click the following link to complete your registration: " . $link;
 			$headers = 'From: register@thetorrentcloud.com' . "\r\n" . 'Reply-To: tab1293@gmail.com' . "\r\n" . 'X-Mailer: PHP/' . phpversion();
@@ -162,9 +148,9 @@
 			if(!$mailed) {
 				echo json_encode(array('status'=>false, 'message'=>'There was an error sending you the email'));
 				return;
-			}
+			}*/
 		} 
-		echo json_encode($userCreated);
+		//echo json_encode($userCreated);
 
 	});
 	
@@ -201,6 +187,23 @@
 		}
 		
 		
+	});
+	
+	$app->get('/file',  $authenticateMiddleware, function() use ($app, $env) {
+		$fileDB = new FileDB();
+		$fileId = $app->request->params('id');
+		$file = $fileDB->get($fileId);
+		if(!is_null($file)) {
+			ob_end_clean();
+			flush();
+			header('Content-Type: ' . $file->MIME_type);
+			header('Content-Length: ' . $file->size);
+			readfile($file->path);
+			exit;
+		} else {
+			echo "File was not found";
+		
+		}
 	});
 
 

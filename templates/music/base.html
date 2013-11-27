@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Music{% endblock %}</title>
+<link rel="stylesheet" href="/css/bootstrap.css">
+<link rel="stylesheet" href="/css/bootstrap-theme.css">
+<link rel="stylesheet" type="text/css" href="/css/main.css">
+<link rel="stylesheet" type="text/css" href="/css/music.css">
+<link rel="stylesheet" type="text/css" href="/css/font-awesome.css">
+<link rel="stylesheet" type="text/css" href="/css/slider.css">
+<script src="/js/jquery-1.10.2.js"></script>
+<script src="/js/bootstrap.js"></script>
+<link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon">
+<link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+
+
+<script src='/js/jquery-1.10.2.js'></script>
+<script src="/js/soundmanager2/soundmanager2.js"></script>
+<script src='/js/bootstrap-slider.js'></script>
+<script>
+
+	function Queue(songs) {
+		this.songs = new Object();
+		this.sounds = new Object();
+		this.queue = new Array();
+
+		this.queueIndex = 0;
+
+		songs.forEach(function(song) {
+			var fileId = song.fileId.$id;
+			this.songs[fileId] = song;
+			this.sounds[fileId] = soundManager.createSound({
+				url: "/music/song?id=" + fileId,
+			});
+		}, this);
+	}
+
+	Queue.prototype.clear = function() {
+		this.queue = [];
+	};
+
+	Queue.prototype.reset = function() {
+		$("#play-pause-button").attr("class", "fa fa-play fa-2x");
+		$('#player-album-artwork').attr('src', "/artwork/music/default-albumart.jpg");
+		$("#player-song-info").html("");
+		this.queueIndex = 0;
+	};
+
+	Queue.prototype.load = function(fileIds) {
+		this.clear();
+		fileIds.forEach(function(fileId) {
+			this.add(fileId);
+		}, this);
+	};
+
+	Queue.prototype.add = function(fileId) {
+		this.queue.push(fileId);
+	};
+
+	Queue.prototype.play = function(fileId) {
+		var sound = this.sounds[fileId];
+		if(sound == undefined) {
+
+		}
+		var queue = this;
+		sound.play({
+			onplay: function() {
+				queue.queueIndex = queue.queue.indexOf(fileId);
+				queue.displayCurrentSong(fileId);
+				$("#play-pause-button").attr("class", "fa fa-pause fa-2x");
+				$("#"+ fileId + " > .playing").css("background-image", "url(/images/equalizer.gif)");
+			},
+			onfinish: function() {
+				$("#"+ fileId + " > .playing").css("background-image", "");
+				queue.playNext();
+			}
+		});
+	};
+
+	Queue.prototype.resume = function() {
+		var songHash = this.queue[this.queueIndex];
+		var sound = this.sounds[songHash];
+		if(sound != undefined) {
+			if(sound.playState == 0) {
+				this.play(songHash);
+			} else {
+				sound.resume();
+			}
+			$("#play-pause-button").attr("class", "fa fa-pause fa-2x");
+			$("#"+ songHash + " > .playing").css("background-image", "url(/images/equalizer.gif)");
+		}
+	};
+
+	Queue.prototype.stop = function() {
+		var songHash = this.queue[this.queueIndex];
+		var sound = this.sounds[songHash];
+		if(sound != undefined) {
+			sound.stop();
+			$("#"+ songHash + " > .playing").css("background-image", "");
+			$("#play-pause-button").attr("class", "fa fa-play fa-2x");
+		}
+	}
+
+	Queue.prototype.pause = function() {
+		var songHash = this.queue[this.queueIndex];
+		var sound = this.sounds[songHash];
+		if(sound != undefined) {
+			sound.pause();
+			$("#"+ songHash + " > .playing").css("background-image", "");
+			$("#play-pause-button").attr("class", "fa fa-play fa-2x");
+		}
+	}
+	
+	Queue.prototype.playNext = function() {
+		this.stop();
+		var nextSongIndex = this.queueIndex + 1;
+		if(nextSongIndex < this.queue.length) {
+			this.queueIndex = nextSongIndex
+			var songHash = this.queue[this.queueIndex];
+			this.play(songHash);
+		}
+		else {
+			this.reset();
+		}
+	}
+
+	Queue.prototype.playPrevious = function() {
+		this.stop();
+		var prevSongIndex = this.queueIndex - 1;
+		if(prevSongIndex >= 0) {
+			var songHash = this.queue[prevSongIndex];
+			this.play(songHash);
+		}
+	}
+
+	Queue.prototype.nowPlaying = function() {
+		var songHash = this.queue[this.queueIndex];
+		if(songHash == undefined) {
+			return null;
+		} else {
+			return songHash;
+		}
+	}
+
+	Queue.prototype.displayCurrentSong = function(songHash) {
+		var song = this.songs[songHash];
+		var artist = song.artist;
+		var album = song.album;
+		var title = song.title;
+		var artwork = albumArtwork[album];
+		console.log(artwork);
+		$('#player-album-artwork').attr('src', artwork);
+		$("#player-song-info").html(title+"<br>" + artist + " - " + album);
+	}
+
+	var audioFiles;
+	var songs;
+	var queue;
+
+	soundManager.setup({
+
+	    // where to find the SWF files, if needed
+	    url: '/js/soundmanager2/swf/',
+
+	    // if you'd rather have 100% HTML5 mode (where supported)
+	    preferFlash: false,
+
+	    onready: function() {
+	    	songs = {{ tracks|json_encode|raw }};
+			
+			//console.log(songs);
+	    	queue = new Queue(songs);
+	    },
+
+	    ontimeout: function() {
+	      // Uh-oh. SWF missing, Flash blocked or other issue
+	    }
+
+	});
+	
+	var albumArtwork = {{ albumArtwork|json_encode|raw }};
+	
+	window.onpopstate = function(event) {
+		$("#media-content").html(event.state.html);
+		console.log(history.state);
+	}
+
+	$(document).ready(function() {
+		$('.slider').slider()
+		var originalPage = {html: $("#media-content").html()};
+		history.replaceState(originalPage, "", "");
+
+		var songsOnDeck;
+		$('#play-pause-button').click(function() {
+			if($(this).hasClass("fa-play")) {
+				queue.resume();
+			}
+			else if($(this).hasClass("fa-pause")) {
+				queue.pause();
+			}
+		});
+
+		$('#next-button').click(function() {
+			queue.playNext();
+		});
+
+		$('#previous-button').click(function() {
+			queue.playPrevious();
+		});
+
+		$("#media-category-menu li").click(function() {
+			$(this).siblings().removeClass("active");
+			$(this).addClass("active");
+		});
+
+		$("#music-category").click(function() {
+			$.ajax({
+               type: "GET",
+               url: "/library/music/",
+               success: function(html) {
+					$('#media-content').html(html);
+               }
+             });
+		});
+
+		$(document).on("click", ".artist-listing", function() {
+			$("#loading").fadeIn();
+			var artist = $(this).attr('id');
+			var oldHtml = $("#media-content").html();
+			$.ajax({
+               type: "GET",
+               url: "/music/artists/" + artist,
+               success: function(html) {
+						$("#loading").fadeOut();
+						$('#media-content').html(html);
+						var state = {html: html};
+						history.pushState(state, "", "/music/artists/"+artist);
+               }
+         });
+		});
+
+		$(document).on("click", ".album-listing", function() {
+			$("#loading").fadeIn();
+			var artist = $(this).parent().attr('id');
+			var album = $(this).attr('id');
+			//var playingSongHash = queue.nowPlaying();
+			$.ajax({
+               type: "GET",
+               url: "/music/artists/" + artist + "/" + album,
+               success: function(html) {
+						$("#loading").fadeOut();
+						$('#media-content').html(html);
+						var state = {html: html};
+						history.pushState(state, "", "/music/artists/"+artist+"/"+album);
+               }
+             });
+		});
+
+		$(document).on("click", ".song-listing", function() {
+			var fileIds = new Array();
+			var fileId = $(this).attr('id');
+			$(".song-container").find(".song-listing").each(function() {
+				fileIds.push(this.id);
+			});
+			queue.stop();
+			queue.load(fileIds);
+			queue.play(fileId);
+		});
+	});
+</script>
+{% block head %}
+{% endblock %}
+<body>
+<div id="loading">
+    <div id="loadingcontent">
+        <p id="loadingspinner">
+            <i class="fa fa-spinner fa-spin fa-3x"></i>
+        </p>
+    </div>
+</div>
+{% block navbar %}
+	{% set vars = {'username': username} %}
+	{% include 'navbar-wide-logged-in.html' with vars%}
+{% endblock %}
+
+{% block content %}
+<div class='container-liquid'>
+	<div class='row'>
+		<div id='media-content' class="col-lg-12">
+			{%block mediaContent %}{% endblock %}
+		</div>
+	</div>
+</div>
+{% endblock %}
+
+<nav id='player' class="navbar navbar-default navbar-fixed-bottom" role="navigation">
+	<div class='row'>
+		<div id='song-info' class='col-lg-4'>
+			<img id='player-album-artwork' src="/artwork/music/default-albumart.jpg">
+			<span id='player-song-info'></span>
+		</div>
+		<div id='player-controls' class='col-lg-4 text-center'>
+			<i id='previous-button' class="fa fa-step-backward fa-2x"></i>
+			<i id='play-pause-button' class="fa fa-play fa-2x"></i>
+			<i id='next-button' class="fa fa-step-forward fa-2x"></i>
+		</div>
+	</div>
+</nav>
+</body>
+</html>

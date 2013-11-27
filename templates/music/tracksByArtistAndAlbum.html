@@ -1,0 +1,20 @@
+{% extends ajax ? "/music/ajax_base.html" : "/music/base.html" %}
+{% block mediaContent %}
+<div class='panel panel-default'>
+	<div class='panel-heading'><h4>{{ album }} - <a id='{{ artist }}' class='artist-listing'>{{ artist }}</a></h4></div>
+	<div class='panel-body'>
+		<div style='float:left;'>
+			<img class='album-artwork' src='{{ attribute(albumArtwork, album) }}' />
+		</div>
+
+		<div class='song-container'>
+			<table class='song-table table table-hover table-condensed'>
+				<th>#</th><th></th><th>Title</th><th>Artist</th><th>Album</th><th>Time</th>
+				{% for track in tracks %}
+					<tr id='{{ track.fileId }}' class='song-listing album-view'><td class='trackNumber'>{{ track.trackNumber }}</td><td></td><td class='title'>{{ track.title }}</td><td class='artist'>{{ track.artist }}</td><td class='album'>{{ track.album }}</td><td class='duration'>{{ track.duration }}</td></tr>
+				{% endfor %}
+			</table>
+		</div>
+	</div>
+</div>
+{% endblock %}
